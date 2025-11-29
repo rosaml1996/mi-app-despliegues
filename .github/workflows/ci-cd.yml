@@ -1,0 +1,34 @@
+name: CI/CD - Build and Push Docker Image
+
+# Cuándo se ejecuta el workflow
+on:
+  push:
+    branches:
+      - main      # se ejecuta al hacer push a la rama main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Descargar el código del repositorio
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2) Hacer login en Docker Hub usando los secrets del repo
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 3) Construir y subir la imagen Docker
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .          # carpeta actual (raíz del repo)
+          file: ./Dockerfile  # el Dockerfile
+          push: true          # importante: subir la imagen al registro
+          tags: |
+            rosaml96/mi-app-despliegues:latest
+            rosaml96/mi-app-despliegues:${{ github.sha }}
